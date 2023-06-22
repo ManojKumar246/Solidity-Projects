@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract HotelRoom
+{
+    address payable public owner; 
+    enum status { Vacant, Occupied }
+    status public CurrentStatus;
+
+    event Occupy(address Occu, uint _Value);
+
+    constructor()
+    {
+        owner= payable (msg.sender);
+        CurrentStatus=status.Vacant;
+    }
+
+    modifier OnlyWhenVacant
+    {
+        require(CurrentStatus==status.Vacant,"Currently Occupied");
+        _;
+    }
+    
+    modifier Costs(uint amount)
+    {
+        require(msg.value==amount,"Not Enough Ether");
+        _;
+    }
+
+    function book() public payable OnlyWhenVacant Costs(2 ether) 
+    {
+        CurrentStatus=status.Occupied;
+       //owner.transfer(msg.value);might be issues
+       (bool sent,) = owner.call{value: msg.value}("");
+       require(sent,"Failed to send ether");
+
+        emit Occupy(msg.sender, msg.value);
+    }
+
+
+}
